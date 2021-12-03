@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const compression = require('compression');
+const enforce = require('express-sslify');
 
 if(process.env.NODE_ENV !== 'production') require('dotenv').config();
 
@@ -13,6 +14,7 @@ const port = process.env.PORT || 5000;
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(enforce.HTTPS({ trustProtoHeader: true}));
 
 if(process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'client/build')));
@@ -26,6 +28,10 @@ app.listen(port, error => {
     if(error) throw error;
 
     console.log('Servidor rodando na porta ' + port);
+});
+
+app.get('/service-worker.js', (req, res) => {
+    res.sendfile(path.resolve(__dirname, '..', 'build', 'service-worker.js'));
 });
 
 app.post('/payment', (req, res) => {
